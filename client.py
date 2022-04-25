@@ -38,8 +38,7 @@ def renew():
 def listen():
   print("The client is waiting for a message.")#the program is running and waiting for a message
   message, _ = clientSocket.recvfrom(4096)
-  print(str(message.decode()))
-  print("The client received something in its socket.")#just debugging
+  print("Client received <- " +message.decode())
 
   return str(message.decode())
 
@@ -115,6 +114,6 @@ def menu():
 
 discover()#Sending something to the server
 message = listen()
-
+received(message)
 
 

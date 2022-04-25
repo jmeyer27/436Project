@@ -89,10 +89,12 @@ def request(ipOffer):
 
 def checkTimeStamp(time): #will return true if expired, false if not expired?
   timestamp = datetime.fromisoformat(isotimestring)
-  timeFromServer = datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f') #convert time from server to timestamp
-  #check if timeFromServer - timestamp is positive then return false, otherwise true
-  #return true or false
-  
+  timeFromServer = datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f')
+  difference = timeFromServer - timestamp
+  if(difference.seconds > 0):
+    return True
+  else:
+    return False
 
 
 #the menu:

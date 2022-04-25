@@ -6,6 +6,7 @@ import sys
 
 # Time operations in python
 # timestamp = datetime.fromisoformat(isotimestring)
+isotimestring = datetime.now().isoformat()
 
 # Extract local MAC address [DO NOT CHANGE]
 MAC = ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xFF) for ele in range(0, 8 * 6, 8)][::-1]).upper()
@@ -18,7 +19,6 @@ clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 
 def discover():
-  print("Discover message sent")#just debugging
   # Sending DISCOVER message
   discover = "DISCOVER " + str(MAC)
   clientSocket.sendto(discover.encode(), (SERVER_IP, SERVER_PORT))
@@ -51,15 +51,15 @@ def listen():
   #else display IP to user, read number 6.
   #then display a menu (the menu below, but make it fancy and work correctly)
 def received(message):
+  message = message.split(' ')
   if(message[0] == "OFFER"):
-    print("message is offer") #debugging
     check = checkMac(message[1])
     if(check == True):
       #check whether timestamp is expired
       print("matched") #debugging
     elif(check == False):
       #send REQUEST w/ MAC and IP and timestamp
-      print("not matched")
+      request(message[2]) #the ip 
     
   if(message[0]== "ACKNOWLEDGE"):
     print("message is ack") #debugging

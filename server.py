@@ -67,7 +67,7 @@ def dhcp_operation(parsed_message):
         newRecord = [1, MAC, ip, u60secfromnow, False]
         records.append(newRecord)#store in record
         #reply with OFFER containing MAC, assigned IP, u60secondsfromnow
-        offer = "OFFER" +MAC +str(ip) +str(u60secfromnow) #offer message
+        offer = "OFFER " +MAC +" " +str(ip) +" "+str(u60secfromnow) #offer message
         return offer
        
         

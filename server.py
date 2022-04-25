@@ -16,10 +16,10 @@ records = [] or {} or object
 ip_addresses = [ip.exploded for ip in IPv4Interface("192.168.45.0/28").network.hosts()]
 
 # Parse the client messages
-def parse_message(message):
-  #todo: write this function
-  #something like, if 
-    pass
+def parse_message(message):  #This is a hot mess btw
+  message = str(message).split(' ')
+  #print(message)
+  return message
 
 
 
@@ -30,11 +30,12 @@ def parse_message(message):
 #When client sends a RELEASE and then a RENEW, it gets the address it had b4
 #We have to have print statements for each step
 
-  ## TO RUN SERVER, GO TO SHELL AND TYPE IN  ##
-#              python3 server.py 
-
 def dhcp_operation(parsed_message):
-    request = ""
+    request = ""#a placeholder. need to parse the message first up above
+    request = str(parsed_message[0])
+    request = request[2:]
+   
+    print("REQUEST IS: ")
     if request == "LIST":
       print('request == LIST')#just a print statement to see if it is being received
       #idk, something about an admin client. Read step 12?
@@ -91,16 +92,19 @@ def dhcp_operation(parsed_message):
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Avoid TIME_WAIT socket lock [DO NOT REMOVE]
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind(("", 9000))
+
+SERVER_IP = socket.gethostname() #a trial, idk if this works? it should?
+server.bind((SERVER_IP, 9000)) #server.bind(("", 9000))
 print("DHCP Server running...")
 
 try:
     while True:
         message, clientAddress = server.recvfrom(4096)
-
-        parsed_message = parse_message(message)
-
-        response = dhcp_operation(parsed_message)
+        print("Server- A message was received: ")#a temp message
+        print(str(message.decode()))
+        parsed_message = parse_message(message)#current todo
+        #print(parsed_message)#The message  is commented out for now, is broken
+        response = dhcp_operation(parsed_message)#will not work rn because message is not being parsed
 
         server.sendto(response.encode(), clientAddress)
 except OSError:

@@ -10,9 +10,7 @@ timestamp = datetime.fromisoformat(isotimestring)
 #60secfromnow = timestamp + timedelta(seconds=60)
 
 # Choose a data structure to store your records
-records = [] #list of lists? objects? dictionaries?
-
-#~~todo potentially make some type of object here~~
+records = [] #list of lists
 #record num = list placement (up to 14 total records will be stored) (or just a number)
 #MACaddress
 #IP address (192.168.45.(1 to 14)) = 14 recorded ip addresses
@@ -25,13 +23,20 @@ ip_addresses = [ip.exploded for ip in IPv4Interface("192.168.45.0/28").network.h
 # Parse the client messages
 def parse_message(message):  #This is a hot mess btw
   message = str(message).split(' ')
-  #print(message)
   return message
 
 def checkAssigned(address):
   #if matches return true
   #else return false
   pass
+
+def checkTimeStamp(time):
+  timestamp = datetime.fromisoformat(isotimestring)
+  difference = time - timestamp
+  if(difference.seconds > 0):
+    return True
+  else:
+    return False
   
 
   #  ~!~  i m p o r t a n t  ~!~
@@ -79,18 +84,28 @@ def dhcp_operation(parsed_message):
        
         
       
-    elif request == "REQUEST":
-      print('request == REQUEST')#just a print statement to see if it is being received
-      #when server receives REQUEST, check if IP matches IP of record
+    elif request == "REQUEST": 
+      match = False
       word = str(parsed_message[2])
-      word = word[:-1]#idk why client is always adding ' to the end of messages
+      word = word[:-1]#this is because the client adds ' to the end of messages
       for list in records:
-        for elements in list:  #rethinking data structure for records :/
-          pass #todo
-      #if not then send a DECLINE
-      #otherwise check if timestamp expired
-      #if expired send DECLINE
-      #otherwise set ACKED to TRUE in record and send ACKNOWLEDGE
+        if(list[1] == parsed_message[1]): #finds MAC address in list 
+          if(list[2] == word): #makes sure IP associated with MAC is the one it sent
+            match = True 
+            if(checkTimeStamp(list[3])): #if timestamp was not expired
+              list[4] = True #sets ACK to true
+              ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +word +" " +str(list[3])
+              return ack
+            else: #timestamp was expired, decline
+              decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+              return decline  
+      if(match):#if the request was matched
+        pass#this is taken care of in the above scenario
+      else: #no match was found, send decline
+        decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+        return decline
+      #end request here
+        
       
     elif request == "RELEASE":
       #when receive a RELEASE, check records and release IP by making it expired

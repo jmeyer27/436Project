@@ -23,12 +23,12 @@ def discover():
   discover = "DISCOVER " + str(MAC)
   clientSocket.sendto(discover.encode(), (SERVER_IP, SERVER_PORT))
 
-def release():
-  release = "RELEASE " + str(MAC) #need to add ip address
+def release(ipAddress):
+  release = "RELEASE " + str(MAC) +" " +ipAddress
   clientSocket.sendto(release.encode(), (SERVER_IP, SERVER_PORT))
 
-def renew():
-  renew = "RENEW " + str(MAC) #need to add ip address
+def renew(ipAddress):
+  renew = "RENEW " + str(MAC) +" " +ipAddress
   clientSocket.sendto(renew.encode(), (SERVER_IP, SERVER_PORT))
 
 
@@ -71,7 +71,7 @@ def received(message):
     elif(check == True):
       ipAddress = message[2]
       print("Address " +ipAddress +" has been assigned to this client. TTL " +message[3] +" " +message[4])
-      menu()
+      menu(ipAddress)
     
   if(message[0]== "DECLINE"):
     print("Server declined connection, please try again later.")
@@ -103,7 +103,7 @@ def checkTimeStamp(time): #will return true if not expired, false if expired
   #release (read number 8)
   #renew (read number 9)
   #quit 
-def menu():
+def menu(ipAddress):
   while True:
     choice = 0
     print("Please choose from the options below:")
@@ -112,16 +112,17 @@ def menu():
     print("Enter 3 to Quit")
     choice = input("Choice is: ")
 
-    if(choice == 1):
-      release()
-    elif(choice == 2):
-      renew()
-    elif(choice == 3):
-      sys.exit()
+    if(choice == "1"):
+      release(ipAddress)
+    elif(choice == "2"):
+      renew(ipAddress)
+    elif(choice == "3"):
+      sys.exit(0)
 
 
 discover()#Sending something to the server
-message = listen()#listen for OFFER
-received(message)#interpret message
-message = listen()#listen for additional messages
-
+message = listen()#listen for OFFER response
+received(message)#interpret message, send REQUEST
+message = listen()#listen for additional messages, ACKNOWLEDGE
+received(message)#interpret newest message
+message = listen()#listen for even newer messages

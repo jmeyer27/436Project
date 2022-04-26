@@ -57,10 +57,10 @@ def received(message):
     if(check == True):
       time = message[3] +" " +message[4] #this was necessary because the message is split by spaces
       checkTime = checkTimeStamp(time)#check whether timestamp is expired
-      if(checkTime == True):
+      if(checkTime == True):#true means it has not expired
         request(message[2])
-    elif(check == False):
-      request(message[2]) #send REQUEST w/ MAC and IP and timestamp
+    elif(check == False):#MAC was not from this client
+      pass #ignore
     
   if(message[0]== "ACKNOWLEDGE"):
     print("message is ack") #debugging
@@ -72,7 +72,7 @@ def received(message):
       ipAddress = message[2]
       print("Address " +ipAddress +" has been assigned to this client. TTL " +message[3] +" " +message[4])
       menu()
-    #if received a DECLINE message, tell user it was declined and terminate
+    
   if(message[0]== "DECLINE"):
     print("Server declined connection, please try again later.")
     sys.exit()

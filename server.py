@@ -10,8 +10,10 @@ timestamp = datetime.fromisoformat(isotimestring)
 #60secfromnow = timestamp + timedelta(seconds=60)
 
 # Choose a data structure to store your records
-records = [] #list, will use nested lists :)    or not??? thinking of changing it?? i dont know :(
-#record num = list placement (up to 14 total records will be stored)
+records = [] #list of lists? objects? dictionaries?
+
+#~~todo potentially make some type of object here~~
+#record num = list placement (up to 14 total records will be stored) (or just a number)
 #MACaddress
 #IP address (192.168.45.(1 to 14)) = 14 recorded ip addresses
 #timestamp 

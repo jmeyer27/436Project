@@ -10,9 +10,9 @@ timestamp = datetime.fromisoformat(isotimestring)
 #60secfromnow = timestamp + timedelta(seconds=60)
 
 # Choose a data structure to store your records
-records = [] #list, will use nested lists :)
+records = [] #list, will use nested lists :)    or not??? thinking of changing it?? i dont know :(
 #record num = list placement (up to 14 total records will be stored)
-#MAC address
+#MACaddress
 #IP address (192.168.45.(1 to 14)) = 14 recorded ip addresses
 #timestamp 
 #ACKED
@@ -26,6 +26,11 @@ def parse_message(message):  #This is a hot mess btw
   #print(message)
   return message
 
+def checkAssigned(address):
+  #if matches return true
+  #else return false
+  pass
+  
 
   #  ~!~  i m p o r t a n t  ~!~
 #Server never assigns more than one IP to a MAC address at a time
@@ -75,13 +80,17 @@ def dhcp_operation(parsed_message):
     elif request == "REQUEST":
       print('request == REQUEST')#just a print statement to see if it is being received
       #when server receives REQUEST, check if IP matches IP of record
+      word = str(parsed_message[2])
+      word = word[:-1]#idk why client is always adding ' to the end of messages
+      for list in records:
+        for elements in list:  #rethinking data structure for records :/
+          pass #todo
       #if not then send a DECLINE
       #otherwise check if timestamp expired
       #if expired send DECLINE
       #otherwise set ACKED to TRUE in record and send ACKNOWLEDGE
-      pass
+      
     elif request == "RELEASE":
-      print('request == RELEASE')#just a print statement to see if it is being received
       #when receive a RELEASE, check records and release IP by making it expired
       #set ACKED to FALSE
       #if the IP was not found somehow then do nothing 

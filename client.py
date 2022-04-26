@@ -55,13 +55,14 @@ def received(message):
   if(message[0] == "OFFER"):
     check = checkMac(message[1])
     if(check == True):
-      #check whether timestamp is expired
       time = message[3] +" " +message[4] #this was necessary because i split the message by spaces
-      checkTimeStamp(time)
-      print("matched") #debugging
+      checkTime = checkTimeStamp(time)#check whether timestamp is expired
+      if(checkTime == True):
+        request(message[2])
     elif(check == False):
       #send REQUEST w/ MAC and IP and timestamp
-      request(message[2]) #the ip 
+      #request(message[2]) #the ip 
+      pass
     
   if(message[0]== "ACKNOWLEDGE"):
     print("message is ack") #debugging
@@ -84,10 +85,10 @@ def checkMac(message):
     
 def request(ipOffer):
   request = "REQUEST " + str(MAC) + " " + str(ipOffer)
-  print("Client sending -> Request" +str(request)) #debugging
+  print("Client sending -> " +str(request)) #debugging
   clientSocket.sendto(request.encode(),(SERVER_IP, SERVER_PORT))
 
-def checkTimeStamp(time): #will return true if expired, false if not expired?
+def checkTimeStamp(time): #will return true if not expired, false if expired
   timestamp = datetime.fromisoformat(isotimestring)
   timeFromServer = datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f')
   difference = timeFromServer - timestamp

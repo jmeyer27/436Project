@@ -108,24 +108,33 @@ def dhcp_operation(parsed_message):
         
       
     elif request == "RELEASE":
-      #when receive a RELEASE, check records and release IP by making it expired
-      #set ACKED to FALSE
-      #if the IP was not found somehow then do nothing 
-      pass
+      for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
+        if(list[1] == parsed_message[1]): #finds MAC address in list
+          timestamp = datetime.fromisoformat(isotimestring)
+          list[3] = timestamp#if found, make timestamp = current time (expiring it)
+          list[4] = False #sets ACK to False, hopefully
+        else: #MAC not found
+          pass #nothing happens
+      #end RELEASE
+      
     elif request == "RENEW":
-      print('request == RENEW')#just a print statement to see if it is being received
-      #if receive RENEW, check records and renew IP address by resetting timestamp
-      #set ACKED to TRUE
-      #send ACKNOWLEDGE to client
+      for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
+        if(list[1] == parsed_message[1]): #finds MAC address in list
+          timestamp = datetime.fromisoformat(isotimestring) 
+          u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
+          list[3] = u60secfromnow #renew timestamp
+          list[4] = True #set ACKED to true
+          ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +str(list[2]) +" " +str(list[3])
+          return ack
+        else: #mac not found
+          pass #check pool
       #if IP was somehow not found, check pool of IP that has not been occupied by clients
-      #same steps as Discover, soooooo...
        #if last IP was searched, check timestamps
         #if timestamp expired, use IP for new request
           #update record with new MAC and expiration time
           #set ACKED to FALSE
         #if NO EXPIRED TIMESTAMP, send client a DECLINE
       #if it succeeded in switching IP addresses, then send new MAC with an OFFER message and set ACKED to FALSE
-      pass
 
 # Start a UDP server
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -143,8 +152,11 @@ try:
         parsed_message = parse_message(message)#so bad
 
         response = dhcp_operation(parsed_message)#being worked on sequentially
-        print("Server sending -> " +(response))
-        server.sendto(response.encode(), clientAddress)
+        if(response is None): 
+          pass
+        else:
+          print("Server sending -> " +(response))
+          server.sendto(response.encode(), clientAddress)
 except OSError:
     pass
 except KeyboardInterrupt:

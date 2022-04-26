@@ -19,16 +19,17 @@ clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 
 def discover():
-  # Sending DISCOVER message
   discover = "DISCOVER " + str(MAC)
   clientSocket.sendto(discover.encode(), (SERVER_IP, SERVER_PORT))
 
 def release(ipAddress):
-  release = "RELEASE " + str(MAC) +" " +ipAddress
+  timestamp = datetime.fromisoformat(isotimestring)
+  release = "RELEASE " + str(MAC) +" " +ipAddress +" " +str(timestamp)
   clientSocket.sendto(release.encode(), (SERVER_IP, SERVER_PORT))
 
 def renew(ipAddress):
-  renew = "RENEW " + str(MAC) +" " +ipAddress
+  timestamp = datetime.fromisoformat(isotimestring)
+  renew = "RENEW " + str(MAC) +" " +ipAddress +" " +str(timestamp)
   clientSocket.sendto(renew.encode(), (SERVER_IP, SERVER_PORT))
 
 
@@ -63,11 +64,10 @@ def received(message):
       pass #ignore
     
   if(message[0]== "ACKNOWLEDGE"):
-    print("message is ack") #debugging
     check = checkMac(message[1])
     if(check == False):
       print("Error: MAC Address Fail")
-      sys.exit()
+      sys.exit(0)
     elif(check == True):
       ipAddress = message[2]
       print("Address " +ipAddress +" has been assigned to this client. TTL " +message[3] +" " +message[4])
@@ -75,7 +75,7 @@ def received(message):
     
   if(message[0]== "DECLINE"):
     print("Server declined connection, please try again later.")
-    sys.exit()
+    sys.exit(0)
 
 def checkMac(message):
   if(message == MAC):
@@ -116,6 +116,8 @@ def menu(ipAddress):
       release(ipAddress)
     elif(choice == "2"):
       renew(ipAddress)
+      message = listen()
+      received(message)
     elif(choice == "3"):
       sys.exit(0)
 

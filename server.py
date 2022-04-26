@@ -115,7 +115,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Avoid TIME_WAIT socket lock [DO NOT REMOVE]
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-SERVER_IP = socket.gethostname() #a trial, idk if this works? it should?
+SERVER_IP = socket.gethostname() 
 server.bind((SERVER_IP, 9000)) #server.bind(("", 9000))
 print("DHCP Server running...")
 
@@ -125,7 +125,7 @@ try:
         print("Server received <- " +str(message.decode()))#a message to show received message
         parsed_message = parse_message(message)#so bad
 
-        response = dhcp_operation(parsed_message)#being worked on
+        response = dhcp_operation(parsed_message)#being worked on sequentially
         print("Server sending -> " +(response))
         server.sendto(response.encode(), clientAddress)
 except OSError:

@@ -2,7 +2,6 @@
 import uuid
 import socket
 from datetime import datetime
-import sys
 
 # Time operations in python
 # timestamp = datetime.fromisoformat(isotimestring)

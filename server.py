@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 
 # Time operations in python
-isotimestring = datetime.now().isoformat()
-timestamp = datetime.fromisoformat(isotimestring)
+#isotimestring = datetime.now().isoformat()
+#timestamp = datetime.fromisoformat(isotimestring)
 #60secfromnow = timestamp + timedelta(seconds=60)
 
 # A data structure to store your records
@@ -20,12 +20,9 @@ def parse_message(message):  #This is a hot mess btw
   message = str(message).split(' ')
   return message
 
-def checkAssigned(address):
-  #if matches return true
-  #else return false
-  pass
 
 def checkTimeStamp(time):
+  isotimestring = datetime.now().isoformat()
   timestamp = datetime.fromisoformat(isotimestring)
   difference = time - timestamp
   if(difference.seconds > 0):
@@ -40,16 +37,16 @@ def dhcp_operation(parsed_message):
    
     print("REQUEST IS: ")
     if request == "LIST":
-      #Read step 12
-
-      output = " "
+      
+            #TODO make it so it only adds records to output when timestamp (list[3]) not expired
+                        
+      output = "\n"
       if records:
         for list in records:
-          output += +str(list[0]) +" "+str(list[1]) +" " +str(list[2]) +" " +str(list[3])+" " +str(list[4]) +"\n"
-      else:
-        return "There were no records"
+          output = output +str(list[0]) +" "+str(list[1]) +" " +str(list[2]) +" " +str(list[3])+" " +str(list[4]) +"\n"
+      return output
+      #end of LIST request
 
-      
     
     elif request == "DISCOVER":#When server receives DISCOVER:
       requestMAC = str(parsed_message[1])
@@ -64,6 +61,7 @@ def dhcp_operation(parsed_message):
               ack = "ACKNOWLEDGE " + str(list[1]) +" " +str(list[2]) +" " +str(list[3])
               return ack
             else:#timestamp expired on found MAC address
+              isotimestring = datetime.now().isoformat()
               timestamp = datetime.fromisoformat(isotimestring) 
               u60secfromnow = timestamp + timedelta(seconds=60)
               list[3] = u60secfromnow #renew timestamp
@@ -73,6 +71,7 @@ def dhcp_operation(parsed_message):
         if(countOfAddresses < 14): #there are still IP left, and MAC was not in list
           countOfAddresses += 1
           nextIP = "192.168.45." +str(countOfAddresses) #next ip is next available
+          isotimestring = datetime.now().isoformat()
           timestamp = datetime.fromisoformat(isotimestring) #todo expiration is 60 seconds
           u60secfromnow = timestamp + timedelta(seconds=60)
           #newRecord = [num in records, client's MAC, New IP address, timestamp, ACK]
@@ -86,6 +85,7 @@ def dhcp_operation(parsed_message):
               pass #do nothing, those are ok
             else: #timestamp expired
               list[1] = parsed_message[1] #sets the MAC to the IP
+              isotimestring = datetime.now().isoformat()
               timestamp = datetime.fromisoformat(isotimestring) 
               u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
               list[3] = u60secfromnow #renew timestamp
@@ -96,6 +96,7 @@ def dhcp_operation(parsed_message):
           return decline
       else: #no records exist and records is empty, so add to records and offer
         ip = "192.168.45.1" #IP for first record
+        isotimestring = datetime.now().isoformat()
         timestamp = datetime.fromisoformat(isotimestring) 
         u60secfromnow = timestamp + timedelta(seconds=60)#timestamp expires in 60 seconds
         #newRecord = [num in records, client's MAC, New IP address, timestamp, ACK]
@@ -120,12 +121,12 @@ def dhcp_operation(parsed_message):
               ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +word +" " +str(list[3])
               return ack
             else: #timestamp was expired, decline
-              decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+              decline = "DECLINE "
               return decline  
       if(match):#if the request was matched
         pass#this is taken care of in the above scenario
       else: #no match was found, send decline
-        decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+        decline = "DECLINE "
         return decline
       #end request here
         
@@ -133,6 +134,7 @@ def dhcp_operation(parsed_message):
     elif request == "RELEASE":
       for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
         if(list[1] == parsed_message[1]): #finds MAC address in list
+          isotimestring = datetime.now().isoformat()
           timestamp = datetime.fromisoformat(isotimestring)
           list[3] = timestamp#if found, make timestamp = current time (expiring it)
           list[4] = False #sets ACK to False
@@ -140,22 +142,24 @@ def dhcp_operation(parsed_message):
           pass #nothing happens
       #end RELEASE
 
-      
+  
     elif request == "RENEW":
       for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
         if(list[1] == parsed_message[1]): #finds MAC address in list
+          isotimestring = datetime.now().isoformat()
           timestamp = datetime.fromisoformat(isotimestring) 
           u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
           list[3] = u60secfromnow #renew timestamp
           list[4] = True #set ACKED to true
           ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +str(list[2]) +" " +str(list[3])
           return ack
-        else: #mac not found          ~ ~ ~TODO~ ~ ~
+        else: #mac not found  
           for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
             if(checkTimeStamp(list[3])): #if timestamp was not expired
               pass #do nothing, those are ok
             else:#timestamp was expired
               list[1] = requestMAC #sets the MAC to the IP
+              isotimestring = datetime.now().isoformat()
               timestamp = datetime.fromisoformat(isotimestring) 
               u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
               list[3] = u60secfromnow #renew timestamp
@@ -163,7 +167,7 @@ def dhcp_operation(parsed_message):
               offer = "OFFER " +str(list[1]) +" " +str(list[2]) +" "+str(list[3]) #offer message
               return offer
           #no available records
-          decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+          decline = "DECLINE "
           return decline
       #end of RENEW
 

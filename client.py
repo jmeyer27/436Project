@@ -33,8 +33,6 @@ def renew(ipAddress):
   clientSocket.sendto(renew.encode(), (SERVER_IP, SERVER_PORT))
 
 
-
-
 # LISTENING FOR RESPONSE
 def listen():
   print("The client is waiting for a message.")#the program is running and waiting for a message
@@ -44,13 +42,6 @@ def listen():
   return str(message.decode())
 
 
-#if client receives OFFER, checks if messages MAC is the same as the MAC it sent
-  #if yes, checks if timestamp is expired
-    #if not expired, send REQUEST w/ MAC and IP and timestamp
-#if received ACKNOWLEDGE, checks MAC address
-  #if different, tell user and terminate program
-  #else display IP to user, read number 6.
-  #then display a menu (the menu below, but make it fancy and work correctly)
 def received(message):
   message = message.split(' ')
   if(message[0] == "OFFER"):

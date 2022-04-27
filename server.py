@@ -11,11 +11,11 @@ timestamp = datetime.fromisoformat(isotimestring)
 
 # Choose a data structure to store your records
 records = [] #list of lists
-#record num = list placement (up to 14 total records will be stored) (or just a number)
-#MACaddress
-#IP address (192.168.45.(1 to 14)) = 14 recorded ip addresses
-#timestamp 
-#ACKED
+#0- record num = list placement (up to 14 total records will be stored) (or just a number)
+#1- MACaddress
+#2- IP address (192.168.45.(1 to 14)) = 14 recorded ip addresses
+#3- timestamp 
+#4- ACKED
 
 # List containing all available IP addresses as strings
 ip_addresses = [ip.exploded for ip in IPv4Interface("192.168.45.0/28").network.hosts()]
@@ -48,41 +48,76 @@ def checkTimeStamp(time):
 def dhcp_operation(parsed_message):
     request = str(parsed_message[0])
     request = request[2:]
-    #print (request) for debugging
    
     print("REQUEST IS: ")
     if request == "LIST":
       print('request == LIST')#just a print statement to see if it is being received
       #idk, something about an admin client. Read step 12?
+
+
+
+          #todo
+
+      
       pass
     elif request == "DISCOVER":#When server receives DISCOVER:
-      MAC = str(parsed_message[1])
-      if records: #records is true when not empty, false if empty
-        #check if MAC address exists in list or not
-        #if found, check if timestamp expired
-        #if not expired set ACKED to true, send ACKNOWLEDGE 
-        #if expired, look at third bullet point for updating
-        #if no MAC address was found:
-        #check pool of IP that has not been occupied by clients
-        #if last IP was searched, check timestamps
-        #if timestamp expired, use IP for new request
-          #update record with new MAC and expiration time
-          #set ACKED to FALSE
-        #if NO EXPIRED TIMESTAMP, send client a DECLINE
-        #store info in record, idk look @ last bullet point before 4
-        pass 
+      requestMAC = str(parsed_message[1])
+      requestMAC = requestMAC[:-1]
+      if records: #records is true when not empty, false 
+        countOfAddresses = 0
+        for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
+          countOfAddresses += 1
+          if(list[1] == requestMAC): #finds MAC address in list
+            if(checkTimeStamp(list[3])): #if timestamp was not expired
+              list[4] = True #sets ACK to true
+              ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +str(list[2]) +" " +str(list[3])
+              return ack
+            else:#timestamp expired
+              timestamp = datetime.fromisoformat(isotimestring) 
+              u60secfromnow = timestamp + timedelta(seconds=60)
+              list[3] = u60secfromnow #renew timestamp
+              list[4] = False #set ACKED to False
+              offer = "OFFER " +str(list[1]) +" " +str(list[2]) +" " +str(list[3])
+              return offer
+        if(countOfAddresses < 14): #there are still IP left
+          nextIP = "192.168.45." +str(countOfAddresses+1) #next ip is next available
+          timestamp = datetime.fromisoformat(isotimestring) #todo expiration is 60 seconds
+          u60secfromnow = timestamp + timedelta(seconds=60)
+          #newRecord = [num in records, client's MAC, New IP address, timestamp, ACK]
+          newRecord = [1, requestMAC, nextIP, u60secfromnow, False]
+          records.append(newRecord)#store info in record
+          offer = "OFFER " +requestMAC +" " +str(nextIP) +" "+str(u60secfromnow) #offer message
+          return offer
+        else: #all 14 IPs are being used
+          usableIP = False#now time to search for an expired time stamp
+          for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
+            if(checkTimeStamp(list[3])): #if timestamp was not expired
+              pass #do nothing, those are ok
+            else: #timestamp expired
+              list[1] = parsed_message[1] #sets the MAC to the IP
+              timestamp = datetime.fromisoformat(isotimestring) 
+              u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
+              list[3] = u60secfromnow #renew timestamp
+              list[4] = False #set ACKED to False
+              useableIP = True
+              return #i would think an OFFER would be sent but i didnt see it in the notes?
+          if(usableIP):
+            pass #it was already done and should have returned
+          else:#all IP are being used, no records were available
+            decline = "DECLINE "+str(parsed_message[1]) +str(parsed_message[2]) 
+            return decline
       else: #no records exist and records is empty, so add to records and offer
         ip = "192.168.45.1" #IP for first record
         timestamp = datetime.fromisoformat(isotimestring) 
         u60secfromnow = timestamp + timedelta(seconds=60)#timestamp expires in 60 seconds
         #newRecord = [num in records, client's MAC, New IP address, timestamp, ACK]
-        newRecord = [1, MAC, ip, u60secfromnow, False]
+        newRecord = [1, requestMAC, ip, u60secfromnow, False]
         records.append(newRecord)#store in record
         #reply with OFFER containing MAC, assigned IP, u60secondsfromnow
-        offer = "OFFER " +MAC +" " +str(ip) +" "+str(u60secfromnow) #offer message
+        offer = "OFFER " +requestMAC +" " +str(ip) +" "+str(u60secfromnow) #offer message
         return offer
+        #end discover
        
-        
       
     elif request == "REQUEST": 
       match = False
@@ -112,10 +147,11 @@ def dhcp_operation(parsed_message):
         if(list[1] == parsed_message[1]): #finds MAC address in list
           timestamp = datetime.fromisoformat(isotimestring)
           list[3] = timestamp#if found, make timestamp = current time (expiring it)
-          list[4] = False #sets ACK to False, hopefully
+          list[4] = False #sets ACK to False
         else: #MAC not found
           pass #nothing happens
       #end RELEASE
+
       
     elif request == "RENEW":
       for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
@@ -126,16 +162,10 @@ def dhcp_operation(parsed_message):
           list[4] = True #set ACKED to true
           ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +str(list[2]) +" " +str(list[3])
           return ack
-        else: #mac not found
+        else: #mac not found          ~ ~ ~TODO~ ~ ~
           pass #check pool
-      #if IP was somehow not found, check pool of IP that has not been occupied by clients
-       #if last IP was searched, check timestamps
-        #if timestamp expired, use IP for new request
-          #update record with new MAC and expiration time
-          #set ACKED to FALSE
-        #if NO EXPIRED TIMESTAMP, send client a DECLINE
-      #if it succeeded in switching IP addresses, then send new MAC with an OFFER message and set ACKED to FALSE
 
+          
 # Start a UDP server
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Avoid TIME_WAIT socket lock [DO NOT REMOVE]
@@ -151,8 +181,8 @@ try:
         print("Server received <- " +str(message.decode()))#a message to show received message
         parsed_message = parse_message(message)#so bad
 
-        response = dhcp_operation(parsed_message)#being worked on sequentially
-        if(response is None): 
+        response = dhcp_operation(parsed_message)
+        if(response is None): #such as when a RELEASE was processed
           pass
         else:
           print("Server sending -> " +(response))

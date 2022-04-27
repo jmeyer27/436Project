@@ -38,7 +38,7 @@ def dhcp_operation(parsed_message):
     print("REQUEST IS: ")
     if request == "LIST":
       
-            #TODO make it so it only adds records to output when timestamp (list[3]) not expired
+            #TODO make it so it only adds records to output when timestamp (list[3]) not expired (or maybe if ACKED is false, which would be much easier)
                         
       output = "\n"
       if records:
@@ -153,22 +153,22 @@ def dhcp_operation(parsed_message):
           list[4] = True #set ACKED to true
           ack = "ACKNOWLEDGE " + str(parsed_message[1]) +" " +str(list[2]) +" " +str(list[3])
           return ack
-        else: #mac not found  
-          for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
-            if(checkTimeStamp(list[3])): #if timestamp was not expired
-              pass #do nothing, those are ok
-            else:#timestamp was expired
-              list[1] = requestMAC #sets the MAC to the IP
-              isotimestring = datetime.now().isoformat()
-              timestamp = datetime.fromisoformat(isotimestring) 
-              u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
-              list[3] = u60secfromnow #renew timestamp
-              list[4] = False #set ACKED to False
-              offer = "OFFER " +str(list[1]) +" " +str(list[2]) +" "+str(list[3]) #offer message
-              return offer
-          #no available records
-          decline = "DECLINE "
-          return decline
+      #mac not found in any records
+      for list in records:#Record = [num in records, client's MAC, New IP address, timestamp, ACK]
+        if(checkTimeStamp(list[3])): #if timestamp was not expired
+          pass #do nothing, those are ok
+        else:#timestamp was expired
+          list[1] = requestMAC #sets the MAC to the IP
+          isotimestring = datetime.now().isoformat()
+          timestamp = datetime.fromisoformat(isotimestring) 
+          u60secfromnow = timestamp + timedelta(seconds=60) #new timestamp w 60 second expiration
+          list[3] = u60secfromnow #renew timestamp
+          list[4] = False #set ACKED to False
+          offer = "OFFER " +str(list[1]) +" " +str(list[2]) +" "+str(list[3]) #offer message
+          return offer
+      #no available records were found
+      decline = "DECLINE "
+      return decline
       #end of RENEW
 
 

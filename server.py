@@ -38,12 +38,12 @@ def dhcp_operation(parsed_message):
     print("REQUEST IS: ")
     if request == "LIST":
       
-            #TODO make it so it only adds records to output when timestamp (list[3]) not expired (or maybe if ACKED is false, which would be much easier)
+            #TODO make it so it only adds records to output when t if ACKED is True (list[4])
                         
       output = "\n"
       if records:
         for list in records:
-          output = output +str(list[0]) +" "+str(list[1]) +" " +str(list[2]) +" " +str(list[3])+" " +str(list[4]) +"\n"
+          output = output +str(list[0]) +" "+str(list[1]) +" " +str(list[2]) +" " +str(list[4]) +"\n"
       return output
       #end of LIST request
 
